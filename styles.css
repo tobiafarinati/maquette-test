@@ -1,0 +1,177 @@
+:root {
+  --bg: #41CDF3;
+  --text: #000000;
+  --hover: white;
+}
+
+@font-face {
+  font-family: "Hoefler";
+  src: url('/font/HoeflerTextRegular.ttf') format('ttf');
+}
+
+html,
+body {
+  scroll-behavior: smooth;
+  margin: 8px;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  color: var(--text);
+  background: var(--bg);
+}
+
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  font-family: 'Univers LT Std', sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 16px;
+  margin: 0;
+  text-decoration: none;
+}
+
+p {
+  font-family: 'Hoefler', serif;
+  font-size: 28px;
+  line-height: 32px;
+    font-weight: 400;
+  margin: 0;
+  text-decoration: none;
+}
+
+h1 {
+  font-family: 'Hoefler', serif;
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 400;
+  margin: 0;
+  text-decoration: none;
+}
+
+span {
+  font-family: 'Hoefler', serif;
+  font-size: 28px;
+  line-height: 32px;
+      font-weight: 400;
+  margin: 0;
+  text-decoration: none;
+}
+
+
+/* Menu */
+.menu {
+  position: fixed;
+  top: 71px;
+  left: 14px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.menu__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 220px;
+  transform: rotate(-45deg);
+  transform-origin: top left;
+  pointer-events: auto;
+}
+
+.menu__row {
+  display: flex;
+  flex-direction: row;
+  gap: 56px;
+}
+
+.menu__link {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--text);
+  pointer-events: auto;
+}
+
+.menu__link:hover,
+.menu__link:focus-visible {
+  outline: none;
+  color: var(--hover);
+}
+
+.menu__link--active {
+  color: var(--hover);
+}
+
+/* Sezioni */
+.panel {
+  height: 100vh;
+  scroll-snap-align: start;
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.panel:not(.panel--intro) {
+  padding-top: 110px;
+}
+
+.panel__content--two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.panel__col {
+  min-width: 0;
+}
+
+.scaletta {
+  display: inline-flex;
+  flex-direction: column;
+  margin-bottom: 0;
+  font-family: "Hoefler", serif;
+}
+
+.scaletta span {
+  display: block;
+}
+
+.scaletta span:nth-child(2) {
+  margin-left: 110px;
+}
+
+.scaletta span:nth-child(3) {
+  margin-left: 220px;
+}
+
+.scaletta span:nth-child(4) {
+  margin-left: 330px;
+}
+
+.panel--intro {
+  position: relative;
+}
+
+.panel--intro .panel__content {
+  position: absolute;
+  right: -8px;
+  bottom: 412px;
+  width: max-content;
+  transform: rotate(-45deg);
+  transform-origin: bottom right;
+  text-align: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .panel__content--two-col {
+    grid-template-columns: 1fr;
+  }
+}
