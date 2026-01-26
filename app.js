@@ -54,6 +54,7 @@ window.addEventListener("hashchange", () => {
 //programma da excell
 
 const programGrid = document.getElementById("program-grid");
+let programRows = null;
 
 function parseCsvLine(line, delimiter) {
   const result = [];
@@ -108,71 +109,154 @@ function parseCsv(text, delimiter = ";") {
 
 function buildCell(className, text) {
   const cell = document.createElement("div");
-  cell.className = `program-cell col-1 ${className}`;
+  cell.className = `program-cell col-2 ${className}`;
   if (text) cell.textContent = text;
   return cell;
 }
 
-function buildYearMonthCell(year, month) {
+function buildYearCell(year) {
   const cell = document.createElement("div");
-  cell.className = "program-cell program-year-month col-1";
+  cell.className = "program-cell program-year-cell col-1";
 
-  if (!year && !month) {
+  if (!year) {
     cell.classList.add("program-empty");
     return cell;
   }
 
   const yearEl = document.createElement("span");
   yearEl.className = "program-year";
-  yearEl.textContent = year || "";
-
-  const monthEl = document.createElement("span");
-  monthEl.className = "program-month";
-  monthEl.textContent = month || "";
-
+  yearEl.textContent = year;
   cell.appendChild(yearEl);
-  cell.appendChild(monthEl);
   return cell;
 }
 
-function buildSessionCell({ day, mode, speaker, title }) {
+function buildMonthCell(month, groupId) {
   const cell = document.createElement("div");
-  cell.className = "program-cell program-session col-1";
+  cell.className = "program-cell program-month-cell col-1";
+  if (groupId) cell.dataset.group = groupId;
 
-  if (!day && !speaker && !title) {
+  if (!month) {
     cell.classList.add("program-empty");
     return cell;
   }
 
+  const monthEl = document.createElement("span");
+  monthEl.className = "program-month";
+  monthEl.textContent = month;
+  cell.appendChild(monthEl);
+  return cell;
+}
+
+function buildSessionCell({ day, mode, speaker, title, time, info }, groupId, sessionId) {
+  const isEmpty = !day && !speaker && !title;
+  if (isEmpty) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "program-cell program-empty col-2";
+    return emptyCell;
+  }
+
+  const cell = document.createElement("button");
+  cell.type = "button";
+  cell.className = "program-cell program-session col-2";
+  if (groupId) cell.dataset.group = groupId;
+  if (sessionId) cell.dataset.sessionId = sessionId;
+  cell.dataset.time = time || "";
+  cell.dataset.info = info || title || "";
+  cell.setAttribute("aria-expanded", "false");
+
   const dayRow = document.createElement("div");
   dayRow.className = "program-day";
   dayRow.textContent = day;
+  cell.appendChild(dayRow);
 
   if (mode) {
+    const normalizedMode = mode.trim().toLowerCase();
+    let modeType = null;
+    if (normalizedMode.startsWith("on")) modeType = "online";
+    if (normalizedMode.startsWith("off")) modeType = "offline";
+
     const modeEl = document.createElement("span");
     modeEl.className = "program-mode";
-    modeEl.textContent = mode;
-    dayRow.appendChild(modeEl);
+    if (modeType) {
+      modeEl.classList.add(`program-mode--${modeType}`);
+      modeEl.setAttribute("aria-label", modeType);
+      modeEl.setAttribute("title", modeType.toUpperCase());
+    } else {
+      modeEl.textContent = mode;
+    }
+    cell.appendChild(modeEl);
   }
 
-  const speakerEl = document.createElement("div");
-  speakerEl.className = "program-speaker";
-  speakerEl.textContent = speaker;
+  if (speaker || title) {
+    const textWrap = document.createElement("div");
+    textWrap.className = "program-text";
 
-  const titleEl = document.createElement("div");
-  titleEl.className = "program-title";
-  titleEl.textContent = title;
+    if (speaker) {
+      const speakerEl = document.createElement("div");
+      speakerEl.className = "program-speaker";
+      speakerEl.textContent = speaker;
+      textWrap.appendChild(speakerEl);
+    }
 
-  cell.appendChild(dayRow);
-  if (speaker) cell.appendChild(speakerEl);
-  if (title) cell.appendChild(titleEl);
+    if (title) {
+      const titleEl = document.createElement("div");
+      titleEl.className = "program-title";
+      titleEl.textContent = title;
+      textWrap.appendChild(titleEl);
+    }
+
+    cell.appendChild(textWrap);
+  }
   return cell;
+}
+
+function buildDetailRow(groupId) {
+  const detail = document.createElement("div");
+  detail.className = "program-detail";
+  detail.dataset.group = groupId;
+  detail.hidden = true;
+
+  const timeEl = document.createElement("div");
+  timeEl.className = "program-detail-time";
+
+  const textEl = document.createElement("div");
+  textEl.className = "program-detail-text";
+
+  detail.appendChild(timeEl);
+  detail.appendChild(textEl);
+  return detail;
+}
+
+function getSessionsPerRow(container) {
+  const styles = getComputedStyle(container);
+  const rawPerRow = styles.getPropertyValue("--program-sessions-per-row").trim();
+  const perRow = Number.parseInt(rawPerRow, 10);
+  if (Number.isFinite(perRow) && perRow > 0) {
+    return perRow;
+  }
+  const rawColumns = styles.getPropertyValue("--program-columns").trim();
+  const columns = Number.parseInt(rawColumns, 10);
+  const totalColumns = Number.isFinite(columns) && columns > 0 ? columns : 12;
+  return Math.max(1, Math.floor((totalColumns - 2) / 2));
+}
+
+function hasSessionContent(session) {
+  return Boolean(
+    session.day ||
+    session.mode ||
+    session.speaker ||
+    session.title ||
+    session.time ||
+    session.info,
+  );
 }
 
 function renderProgramGrid(container, rows) {
   container.innerHTML = "";
+  activeSession = null;
+  const sessionsPerRow = getSessionsPerRow(container);
 
-  rows.forEach((row) => {
+  rows.forEach((row, rowIndex) => {
     const sessions = [];
     for (let slot = 1; slot <= 6; slot += 1) {
       sessions.push({
@@ -180,19 +264,37 @@ function renderProgramGrid(container, rows) {
         mode: row[`mode${slot}`],
         speaker: row[`speaker${slot}`],
         title: row[`title${slot}`],
+        time: row[`time${slot}`],
+        info: row[`info${slot}`],
+        sessionId: `${rowIndex}-${slot - 1}`,
       });
     }
 
-    for (let start = 0; start < sessions.length; start += 5) {
+    for (let start = 0; start < sessions.length; start += sessionsPerRow) {
+      const groupSessions = sessions.slice(start, start + sessionsPerRow);
+      if (start > 0 && groupSessions.every((session) => !hasSessionContent(session))) {
+        continue;
+      }
+      const groupId = `${rowIndex}-${start}`;
       const year = start === 0 ? row.year : "";
       const month = start === 0 ? row.month : "";
-      container.appendChild(buildYearMonthCell(year, month));
+      container.appendChild(buildYearCell(year));
+      container.appendChild(buildMonthCell(month, groupId));
 
-      for (let i = 0; i < 5; i += 1) {
-        container.appendChild(buildSessionCell(sessions[start + i] || {}));
+      for (let i = 0; i < sessionsPerRow; i += 1) {
+        const session = groupSessions[i];
+        container.appendChild(buildSessionCell(session || {}, groupId, session?.sessionId));
       }
+      container.appendChild(buildDetailRow(groupId));
     }
   });
+
+  if (activeSessionId) {
+    const session = container.querySelector(`.program-session[data-session-id="${activeSessionId}"]`);
+    if (session) {
+      openSession(container, session);
+    }
+  }
 }
 
 async function loadProgramGrid() {
@@ -202,6 +304,7 @@ async function loadProgramGrid() {
     if (!response.ok) throw new Error("CSV not found");
     const text = await response.text();
     const rows = parseCsv(text, ";");
+    programRows = rows;
     renderProgramGrid(programGrid, rows);
   } catch (error) {
     programGrid.textContent = "Programma non disponibile.";
@@ -209,3 +312,71 @@ async function loadProgramGrid() {
 }
 
 loadProgramGrid();
+
+let programResizeRaf = null;
+window.addEventListener("resize", () => {
+  if (!programGrid || !programRows) return;
+  if (programResizeRaf) cancelAnimationFrame(programResizeRaf);
+  programResizeRaf = requestAnimationFrame(() => {
+    renderProgramGrid(programGrid, programRows);
+    programResizeRaf = null;
+  });
+});
+
+let activeSession = null;
+let activeSessionId = null;
+
+function clearActiveSession(container) {
+  if (!activeSession) return;
+  const groupId = activeSession.dataset.group;
+  activeSession.classList.remove("program-session--active");
+  activeSession.setAttribute("aria-expanded", "false");
+  activeSessionId = null;
+
+  const monthCell = container.querySelector(`.program-month-cell[data-group="${groupId}"] .program-month`);
+  monthCell?.classList.remove("program-month--active");
+
+  const detail = container.querySelector(`.program-detail[data-group="${groupId}"]`);
+  if (detail) {
+    detail.hidden = true;
+    detail.classList.remove("program-detail--open");
+  }
+
+  activeSession = null;
+}
+
+function openSession(container, session) {
+  const groupId = session.dataset.group;
+  const detail = container.querySelector(`.program-detail[data-group="${groupId}"]`);
+  if (!detail) return;
+
+  const time = session.dataset.time || "";
+  const info = session.dataset.info || "";
+  if (!time && !info) return;
+
+  detail.querySelector(".program-detail-time").textContent = time;
+  detail.querySelector(".program-detail-text").textContent = info;
+  detail.hidden = false;
+  detail.classList.add("program-detail--open");
+
+  const monthCell = container.querySelector(`.program-month-cell[data-group="${groupId}"] .program-month`);
+  monthCell?.classList.add("program-month--active");
+
+  session.classList.add("program-session--active");
+  session.setAttribute("aria-expanded", "true");
+  activeSession = session;
+  activeSessionId = session.dataset.sessionId || null;
+}
+
+programGrid?.addEventListener("click", (event) => {
+  const session = event.target.closest(".program-session");
+  if (!session) return;
+
+  if (activeSession === session) {
+    clearActiveSession(programGrid);
+    return;
+  }
+
+  clearActiveSession(programGrid);
+  openSession(programGrid, session);
+});
