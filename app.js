@@ -130,10 +130,11 @@ function buildYearCell(year) {
   return cell;
 }
 
-function buildMonthCell(month, groupId) {
+function buildMonthCell(month, groupId, monthId) {
   const cell = document.createElement("div");
   cell.className = "program-cell program-month-cell col-1";
   if (groupId) cell.dataset.group = groupId;
+  if (monthId) cell.dataset.monthId = monthId;
 
   if (!month) {
     cell.classList.add("program-empty");
@@ -147,7 +148,7 @@ function buildMonthCell(month, groupId) {
   return cell;
 }
 
-function buildSessionCell({ day, mode, speaker, title, time, info }, groupId, sessionId) {
+function buildSessionCell({ day, mode, speaker, title, time, info }, groupId, sessionId, monthId) {
   const isEmpty = !day && !speaker && !title;
   if (isEmpty) {
     const emptyCell = document.createElement("div");
@@ -160,6 +161,7 @@ function buildSessionCell({ day, mode, speaker, title, time, info }, groupId, se
   cell.className = "program-cell program-session col-2";
   if (groupId) cell.dataset.group = groupId;
   if (sessionId) cell.dataset.sessionId = sessionId;
+  if (monthId) cell.dataset.monthId = monthId;
   cell.dataset.time = time || "";
   cell.dataset.info = info || title || "";
   cell.setAttribute("aria-expanded", "false");
@@ -257,6 +259,7 @@ function renderProgramGrid(container, rows) {
   const sessionsPerRow = getSessionsPerRow(container);
 
   rows.forEach((row, rowIndex) => {
+    const monthId = `month-${rowIndex}`;
     const sessions = [];
     for (let slot = 1; slot <= 6; slot += 1) {
       sessions.push({
@@ -279,11 +282,11 @@ function renderProgramGrid(container, rows) {
       const year = start === 0 ? row.year : "";
       const month = start === 0 ? row.month : "";
       container.appendChild(buildYearCell(year));
-      container.appendChild(buildMonthCell(month, groupId));
+      container.appendChild(buildMonthCell(month, groupId, monthId));
 
       for (let i = 0; i < sessionsPerRow; i += 1) {
         const session = groupSessions[i];
-        container.appendChild(buildSessionCell(session || {}, groupId, session?.sessionId));
+        container.appendChild(buildSessionCell(session || {}, groupId, session?.sessionId, monthId));
       }
       container.appendChild(buildDetailRow(groupId));
     }
@@ -333,8 +336,9 @@ function clearActiveSession(container) {
   activeSession.setAttribute("aria-expanded", "false");
   activeSessionId = null;
 
-  const monthCell = container.querySelector(`.program-month-cell[data-group="${groupId}"] .program-month`);
-  monthCell?.classList.remove("program-month--active");
+  container
+    .querySelectorAll(".program-month--active")
+    .forEach((month) => month.classList.remove("program-month--active"));
 
   const detail = container.querySelector(`.program-detail[data-group="${groupId}"]`);
   if (detail) {
@@ -359,7 +363,11 @@ function openSession(container, session) {
   detail.hidden = false;
   detail.classList.add("program-detail--open");
 
-  const monthCell = container.querySelector(`.program-month-cell[data-group="${groupId}"] .program-month`);
+  const monthId = session.dataset.monthId;
+  const monthSelector = monthId
+    ? `.program-month-cell[data-month-id="${monthId}"] .program-month`
+    : `.program-month-cell[data-group="${groupId}"] .program-month`;
+  const monthCell = container.querySelector(monthSelector);
   monthCell?.classList.add("program-month--active");
 
   session.classList.add("program-session--active");
