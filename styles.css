@@ -4,11 +4,9 @@
   --hover: white;
   --intro-offset-y: 0px;
   --intro-offset-x: 0px;
-}
-
-html[lang="en"] {
-  --intro-offset-y: -10px;
-  --intro-offset-x: 6px;
+  --intro-width: 640px;
+  --intro-pos-right: -100px;
+  --intro-pos-bottom: 370px;
 }
 
 html,
@@ -19,6 +17,7 @@ body {
 padding-left: 8px;
 padding-right: 8px;
   margin: 0;
+  -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   color: var(--text);
   background: var(--bg);
@@ -50,6 +49,11 @@ font-family: "hoefler-text", sans-serif;
   
 }
 
+h1 a:hover,
+h1 a:focus-visible {
+  color: var(--hover);
+}
+
 h3 a {
    font-family: "univers-next-pro", sans-serif;
   font-weight: bold;
@@ -59,6 +63,11 @@ h3 a {
   margin-top: 6px;
   margin-bottom: -6px;
   text-decoration: none;
+}
+
+h3 a:hover,
+h3 a:focus-visible {
+  color: var(--hover);
 }
 
 p {
@@ -163,9 +172,9 @@ font-family: "hoefler-text", sans-serif;
 
 .content--intro-block {
   position: absolute;
-  right: calc(-45px + var(--intro-offset-x));
-  bottom: calc(305px + var(--intro-offset-y));
-  width: max-content;
+  right: calc(var(--intro-pos-right) + var(--intro-offset-x));
+  bottom: calc(var(--intro-pos-bottom) + var(--intro-offset-y));
+  width: var(--intro-width);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -177,6 +186,7 @@ font-family: "hoefler-text", sans-serif;
 
 .container--intro .content--intro {
   text-align: inherit;
+  width: 100%;
 }
 
 .lang-switch {
@@ -514,8 +524,8 @@ font-family: "univers-next-pro", sans-serif;
 
 .program-detail-text {
   font-family: "hoefler-text", sans-serif;
-  font-size: 20px;
-  line-height: 24px;
+  font-size: 18px;
+  line-height: 22px;
   grid-column: 4 / -3;
 }
 
@@ -531,6 +541,23 @@ font-family: "univers-next-pro", sans-serif;
   line-height: 16px;
 }
 
+.colophon-page .colophon-logos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  margin-bottom: 30px;
+}
+
+.colophon-page .colophon-logos img {
+  height: 25px;
+  max-height: 25px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
 @media (max-width: 1024px) {
   .program-grid {
     --program-columns: 10;
@@ -538,8 +565,8 @@ font-family: "univers-next-pro", sans-serif;
   }
     .program-detail-text {
   font-family: "hoefler-text", sans-serif;
-  font-size: 20px;
-  line-height: 24px;
+  font-size: 18px;
+  line-height: 22px;
   grid-column: 4 / -1;
 }
 }
@@ -552,8 +579,8 @@ font-family: "univers-next-pro", sans-serif;
 
   .program-detail-text {
   font-family: "hoefler-text", sans-serif;
-  font-size: 20px;
-  line-height: 24px;
+  font-size: 18px;
+  line-height: 22px;
   grid-column: 4 / -1;
 }
 }
@@ -606,6 +633,15 @@ font-family: "univers-next-pro", sans-serif;
 @media (max-width: 580px) {
   .col-6 {
     grid-column: span 12;
+  }
+
+  .opencall-details {
+    row-gap: 22px;
+  }
+
+  .colophon-page .colophon-logos {
+    justify-content: space-between;
+    width: 100%;
   }
 
   .footer .col-1 {
@@ -707,21 +743,23 @@ font-family: "univers-next-pro", sans-serif;
   .content--intro-block {
     position: static;
     transform: none;
+    width: max-content;
   }
 
   .container--intro .content--intro {
     position: absolute;
-    left: calc(-86px + var(--intro-offset-x));
-    bottom: calc(390px + var(--intro-offset-y));
+    left: 50px;
+    bottom: calc(55px + var(--intro-offset-y));
     width: max-content;
     transform: rotate(-45deg);
-    transform-origin: bottom right;
+    transform-origin: bottom left;
     text-align: left;
   }
 
   .container--intro .intro-line {
     transform: translateX(var(--line-offset, 0px));
   }
+
 
   .lang-switch {
     position: absolute;
