@@ -258,6 +258,8 @@ function renderProgramGrid(container, rows) {
   activeSession = null;
   const sessionsPerRow = getSessionsPerRow(container);
 
+  container.appendChild(buildProgramLegend());
+
   rows.forEach((row, rowIndex) => {
     const monthId = `month-${rowIndex}`;
     const sessions = [];
@@ -300,17 +302,53 @@ function renderProgramGrid(container, rows) {
   }
 }
 
+function buildProgramLegend() {
+  const legend = document.createElement("div");
+  legend.className = "program-legend";
+  const isEnglish = (document.documentElement.lang || "").toLowerCase().startsWith("en");
+  legend.setAttribute("aria-label", isEnglish ? "Mode legend" : "Legenda modalità");
+
+  const onlineItem = document.createElement("div");
+  onlineItem.className = "program-legend-item";
+  const onlineIcon = document.createElement("span");
+  onlineIcon.className = "program-mode program-mode--online";
+  onlineIcon.setAttribute("aria-hidden", "true");
+  const onlineLabel = document.createElement("span");
+  onlineLabel.className = "program-legend-label";
+  onlineLabel.textContent = "ONLINE";
+  onlineItem.appendChild(onlineIcon);
+  onlineItem.appendChild(onlineLabel);
+
+  const offlineItem = document.createElement("div");
+  offlineItem.className = "program-legend-item";
+  const offlineIcon = document.createElement("span");
+  offlineIcon.className = "program-mode program-mode--offline";
+  offlineIcon.setAttribute("aria-hidden", "true");
+  const offlineLabel = document.createElement("span");
+  offlineLabel.className = "program-legend-label";
+  offlineLabel.textContent = "OFFLINE";
+  offlineItem.appendChild(offlineIcon);
+  offlineItem.appendChild(offlineLabel);
+
+  legend.appendChild(onlineItem);
+  legend.appendChild(offlineItem);
+  return legend;
+}
+
 async function loadProgramGrid() {
   if (!programGrid) return;
+  const pageLang = document.documentElement.lang || "";
+  const isEnglish = pageLang.toLowerCase().startsWith("en") || window.location.pathname.includes("-en");
+  const programPath = isEnglish ? "data/program_eng.csv" : "data/program_it.csv";
   try {
-    const response = await fetch("data/program1.csv", { cache: "no-store" });
+    const response = await fetch(programPath, { cache: "no-store" });
     if (!response.ok) throw new Error("CSV not found");
     const text = await response.text();
     const rows = parseCsv(text, ";");
     programRows = rows;
     renderProgramGrid(programGrid, rows);
   } catch (error) {
-    programGrid.textContent = "Programma non disponibile.";
+    programGrid.textContent = isEnglish ? "Program not available." : "Programma non disponibile.";
   }
 }
 
