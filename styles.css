@@ -328,6 +328,17 @@ font-family: "univers-next-pro", sans-serif;
   text-align: center;
 }
 
+/* keep FOCUS label and text on one line without changing their styles */
+.focus-inline h2,
+.focus-inline h1 {
+  display: inline;
+  margin: 0;
+}
+
+.focus-inline h1 {
+  margin-left: 6px;
+}
+
 .opencall-links {
   display: flex;
   flex-direction: column;
@@ -353,7 +364,7 @@ font-family: "univers-next-pro", sans-serif;
 .program-grid {
   --program-columns: 12;
   --program-sessions-per-row: 5;
-  row-gap: 24px;
+  row-gap: 30px;
   column-gap: 12px;
   align-items: start;
   grid-template-columns: repeat(var(--program-columns, 12), minmax(0, 1fr));
@@ -792,6 +803,10 @@ font-family: "univers-next-pro", sans-serif;
 
   .opencall-row > .opencall-item:nth-of-type(4) {
     text-align: right;
+  }
+
+  .opencall-links {
+    margin-bottom: 10px;
   }
 
   .colophon-page .grid-12 {
