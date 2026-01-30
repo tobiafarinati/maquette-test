@@ -155,7 +155,6 @@ font-family: "hoefler-text", sans-serif;
   pointer-events: auto;
 }
 
-.menu__link:hover,
 .menu__link:focus-visible {
   outline: none;
   color: var(--hover);
@@ -163,6 +162,12 @@ font-family: "hoefler-text", sans-serif;
 
 .menu__link--active {
   color: var(--hover);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menu__link:hover {
+    color: var(--hover);
+  }
 }
 
 /*intro*/
@@ -610,7 +615,7 @@ font-family: "univers-next-pro", sans-serif;
 
 @media (max-width: 700px) {
   .program-grid {
-    --program-columns: 6;
+    --program-columns: 12;
     --program-sessions-per-row: 2;
   }
 
@@ -620,6 +625,27 @@ font-family: "univers-next-pro", sans-serif;
   line-height: 24px;
   grid-column: 4 / -1;
 }
+
+  .program-year-cell {
+    grid-column: 1 / span 2;
+  }
+
+  .program-legend {
+    position: static;
+    grid-column: 8 / span 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: start;
+  }
+
+  .program-month-cell {
+    grid-column: 1 / span 2;
+  }
+
+  .program-session,
+  .program-cell.program-empty.col-2 {
+    grid-column: span 5;
+  }
 
   .footer .col-1 {
     display: none;
